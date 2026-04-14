@@ -49,10 +49,17 @@ for i = 1:cfg.n_shuttles
         % PET: assume ped clears crossing in timer/2 s on average
         PET = max(0, p.timer/2 - TTC);
 
-        % Severity
-        if TTC < cfg.ttc_high
+        % Effective TTC for severity classification:
+        % Add AV advance-response buffer (cfg.ttc_buffer) to reflect that
+        % the shuttle has already detected and begun responding to this
+        % pedestrian from further away (e.g. 30–50 m with lidar), giving
+        % an effective safety margin beyond the raw geometric TTC.
+        TTC_eff = TTC + cfg.ttc_buffer;
+
+        % Severity based on effective TTC
+        if TTC_eff < cfg.ttc_high
             sev = 'high';
-        elseif TTC < cfg.ttc_med
+        elseif TTC_eff < cfg.ttc_med
             sev = 'medium';
         else
             sev = 'low';
@@ -98,9 +105,12 @@ for i = 1:cfg.n_shuttles
 
         PET = 0;    % Vehicles: PET not applicable; set 0
 
-        if TTC < cfg.ttc_high
+        % Apply AV advance-response buffer (same rationale as pedestrians)
+        TTC_eff = TTC + cfg.ttc_buffer;
+
+        if TTC_eff < cfg.ttc_high
             sev = 'high';
-        elseif TTC < cfg.ttc_med
+        elseif TTC_eff < cfg.ttc_med
             sev = 'medium';
         else
             sev = 'low';

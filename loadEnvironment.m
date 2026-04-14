@@ -99,8 +99,11 @@ for i = 1:n_legs
 end
 
 % --- Baseline leg travel times at nominal speed ---
+% Includes dwell_time so that on-time performance is measured as
+% "departure-to-departure" rather than "arrival-to-arrival".
+% Without this, every trip shows a false ~37% delay due to stop dwell.
 leg_dists = diff([stop_cum_dist, stop_cum_dist(1) + loop_length]);
-baseline_leg_t = leg_dists / cfg.speed_mean;
+baseline_leg_t = leg_dists / cfg.speed_mean + cfg.dwell_time;
 
 % --- Pedestrian crossing nodes (all route stops, higher-degree nodes) ---
 deg = degree(G, (1:n_nodes)');

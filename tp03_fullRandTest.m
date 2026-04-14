@@ -1,4 +1,4 @@
-function result = tp03_fullRandTest()
+function result = tp03_fullRandTest(varargin)
 % tp03_fullRandTest  TP-03: Fully Randomized Test
 %
 % Verifies correct implementation of stochastic elements. Confirms that:
@@ -10,7 +10,10 @@ function result = tp03_fullRandTest()
 %
 % Requirements: SIM-CAP-008, SIM-CAP-009, SIM-CAP-012, SIM-CAP-014
 %
-% Replications: 30  (runs with independent seeds via base_seed + rep-1)
+% Usage:
+%   tp03_fullRandTest           % 30 reps (default)
+%   tp03_fullRandTest('reps',10) % custom rep count
+%
 % Pass Criteria: Generates varied outputs with statistically valid
 %                distributions; no errors; all CI bounds valid.
 
@@ -20,7 +23,11 @@ fprintf('========================================\n');
 
 passed       = true;
 fail_reasons = {};
-N_REPS       = 30;
+
+p = inputParser;
+addParameter(p, 'reps', 30, @(x) isnumeric(x) && x >= 5);
+parse(p, varargin{:});
+N_REPS = p.Results.reps;
 
 cfg               = getDefaultConfig();
 cfg.n_replications = N_REPS;

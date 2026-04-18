@@ -36,6 +36,7 @@ cfg.weather_mean = 1.0;
 cfg.weather_std  = 0;
 cfg.ped_rate_base = 0;
 cfg.veh_rate     = 0;
+cfg.dwell_time   = 0;   % No dwell so jerk is accumulated every step, matching analytical model
 cfg.base_seed    = 42;
 
 try

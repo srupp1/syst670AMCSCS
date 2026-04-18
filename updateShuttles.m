@@ -65,7 +65,7 @@ for i = 1:cfg.n_shuttles
         prev_i = mod(leg_i - 2, env.n_legs) + 1;
         actual_t   = t - s.leg_start_t;
         baseline_t = env.baseline_leg_t(prev_i);
-        delay_pct  = 100 * (actual_t - baseline_t) / max(baseline_t, 1);
+        delay_pct  = max(0, 100 * (actual_t - baseline_t) / max(baseline_t, 1));
 
         tr.shuttle_id  = i;
         tr.leg         = leg_i;

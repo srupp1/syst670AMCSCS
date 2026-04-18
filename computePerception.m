@@ -36,8 +36,7 @@ for i = 1:cfg.n_shuttles
         end
     end
 
-    weather_factor = max(0.5, state.weather);
-    p_det = min(0.999, cfg.detect_prob * weather_factor);
+    p_det = cfg.detect_prob;
 
     for k = 1:numel(agents)
         a = agents(k);

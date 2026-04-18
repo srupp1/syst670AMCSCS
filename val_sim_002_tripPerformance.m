@@ -28,7 +28,7 @@ test_cases = [
     100.0,    100.0,        0.0;
      80.0,    100.0,      -20.0;
     150.0,    100.0,       50.0;
-    110.0,     50.0,       20.0;
+    110.0,     50.0,      120.0;
 ];
 
 for i = 1:size(test_cases,1)
@@ -135,10 +135,10 @@ else
         fprintf('[PASS] Part B: all trip times are positive\n');
     end
 
-    % Cross-check formula: recompute delay_pct and compare
+    % Cross-check formula: recompute delay_pct and compare (mirror the max(0,...) clamp in updateShuttles)
     formula_errs = abs([all_trips.delay_pct] - ...
-        100 * ([all_trips.actual_t] - [all_trips.baseline_t]) ./ ...
-        max([all_trips.baseline_t], 1));
+        max(0, 100 * ([all_trips.actual_t] - [all_trips.baseline_t]) ./ ...
+        max([all_trips.baseline_t], 1)));
     if max(formula_errs) > 1e-6
         passed = false;
         fail_reasons{end+1} = sprintf('Part B: delay_pct formula error max=%.2e', max(formula_errs));

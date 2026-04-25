@@ -50,8 +50,10 @@ enc_all   = cell(N_REPS, 1);
 trip_all  = cell(N_REPS, 1);
 perc_all  = cell(N_REPS, 1);
 jerk_all  = cell(N_REPS, 1);
-enc_counts  = zeros(N_REPS, 1);
-trip_counts = zeros(N_REPS, 1);
+enc_counts      = zeros(N_REPS, 1);
+trip_counts     = zeros(N_REPS, 1);
+ped_checked_all = zeros(N_REPS, 1);
+veh_checked_all = zeros(N_REPS, 1);
 pcr_reps    = nan(N_REPS, 1);
 atd_reps    = nan(N_REPS, 1);
 
@@ -71,21 +73,29 @@ try
                             'true_x',{},'true_y',{},'det_x',{},'det_y',{}, ...
                             'detected',{},'pred_err',{},'latency',{});
 
+        ped_chk_rep = 0;
+        veh_chk_rep = 0;
         for k = 1:cfg.n_steps
             t_sim = cfg.t_start + (k-1)*cfg.dt;
-            [state, enc_k, trip_k, perc_k] = stepSimulation(state, env, cfg, t_sim);
+            [state, enc_k, trip_k, perc_k, chk_k] = stepSimulation(state, env, cfg, t_sim);
             if ~isempty(enc_k),  encounters = [encounters, enc_k];   end %#ok<AGROW>
             if ~isempty(trip_k), trips      = [trips,      trip_k];  end %#ok<AGROW>
             if ~isempty(perc_k), perception = [perception, perc_k];  end %#ok<AGROW>
+            ped_chk_rep = ped_chk_rep + chk_k.n_ped_checked;
+            veh_chk_rep = veh_chk_rep + chk_k.n_veh_checked;
         end
 
         enc_all{rep}  = encounters;
         trip_all{rep} = trips;
         perc_all{rep} = perception;
+        ped_checked_all(rep) = ped_chk_rep;
+        veh_checked_all(rep) = veh_chk_rep;
 
-        js(cfg.n_shuttles) = struct('rms_jerk',0,'rms_brake_jerk',0); %#ok<AGROW>
+        js = repmat(struct('rms_jerk',0,'rms_brake_jerk',0,'jerk_n',0,'brake_jerk_n',0), 1, cfg.n_shuttles);
         for i = 1:cfg.n_shuttles
             sh = state.shuttles(i);
+            js(i).jerk_n       = sh.jerk_n;
+            js(i).brake_jerk_n = sh.brake_jerk_n;
             if sh.jerk_n > 0
                 js(i).rms_jerk = sqrt(sh.jerk_sq_sum / sh.jerk_n);
             end
@@ -169,6 +179,9 @@ end
 
 %% ── Check 3: KPP aggregation produces valid CI bounds ────────────────────
 fprintf('\n--- Check 3: Aggregated KPP statistics ---\n');
+fprintf('  Interactions checked: %d ped-pairs, %d veh-pairs across %d reps (avg %.0f ped/rep, %.0f veh/rep)\n', ...
+    sum(ped_checked_all), sum(veh_checked_all), N_REPS, ...
+    sum(ped_checked_all)/N_REPS, sum(veh_checked_all)/N_REPS);
 try
     kpps = computeKPPs(enc_all, trip_all, perc_all, jerk_all, cfg, env);
     fields  = {'PCR','IVCR','ATD','SAA_recall','UTI'};

@@ -122,22 +122,26 @@ for r = 1:N_REPS
     perc_all{r} = pr;
 
     %% Jerk stats  (RMS_JERK and RMS_BRAKE per shuttle, same each rep)
-    js(cfg.n_shuttles) = struct('rms_jerk',0,'rms_brake_jerk',0);
+    js = repmat(struct('rms_jerk',0,'rms_brake_jerk',0,'jerk_n',1,'brake_jerk_n',1), 1, cfg.n_shuttles);
     for i = 1:cfg.n_shuttles
         js(i).rms_jerk       = RMS_JERK;
         js(i).rms_brake_jerk = RMS_BRAKE;
+        js(i).jerk_n         = 1;
+        js(i).brake_jerk_n   = 1;
     end
     jerk_all{r} = js;
 end
 
-%% Analytical UTI (same formula as computeKPPs)
-jerk_comfort=1.0; jerk_max=3.0; brake_comfort=1.5; brake_max=4.0;
+%% Analytical UTI (mirrors computeKPPs threshold formula exactly)
+jerk_ref = cfg.speed_std / cfg.dt^2;
+jerk_comfort = 0.5*jerk_ref;  jerk_max = 8.0*jerk_ref;
+brake_comfort = 0.4*jerk_ref; brake_max = 6.0*jerk_ref;
 norm_jerk  = max(0, min(1, (RMS_JERK  - jerk_comfort)  / (jerk_max  - jerk_comfort)));
 norm_brake = max(0, min(1, (RMS_BRAKE - brake_comfort) / (brake_max - brake_comfort)));
 uti_vals = zeros(1,N_REPS);
 for r = 1:N_REPS
     consistency = min(1, pcr_target(r) / cfg.kpp.pcr_max);
-    uti_vals(r) = max(0, 1 - 0.40*norm_jerk - 0.35*norm_brake - 0.25*consistency);
+    uti_vals(r) = max(0, 1 - cfg.uti_w_jerk*norm_jerk - cfg.uti_w_brake*norm_brake - cfg.uti_w_consistency*consistency);
 end
 ana.UTI = aggAnalytical(uti_vals, cfg.kpp.uti_min, 'ge');
 

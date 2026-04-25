@@ -1,22 +1,24 @@
-function encounters = detectConflicts(state, cfg, t)
+function [encounters, chk] = detectConflicts(state, cfg, t)
 % detectConflicts  Compute TTC, PET, and separation for all shuttle-ped
 %                  and shuttle-vehicle encounters.
 %
 % Encounter record fields (SIM-IIF-001):
 %   t, shuttle_id, enc_type ('ped'/'veh'), TTC, PET, min_sep, severity
+%
+% Optional second output chk:
+%   chk.n_ped_checked  — total shuttle-ped pairs evaluated (sep <= detect_radius)
+%   chk.n_veh_checked  — total shuttle-veh pairs evaluated (sep <= detect_radius)
 
 encounters = struct('t',{},'shuttle_id',{},'enc_type',{},...
                     'TTC',{},'PET',{},'min_sep',{},'severity',{});
+
+chk.n_ped_checked = 0;
+chk.n_veh_checked = 0;
 
 for i = 1:cfg.n_shuttles
     s = state.shuttles(i);
     if s.dwell > 0; continue; end   % Shuttle stationary at stop
 
-    sv = [s.speed * cos(atan2(0,1)), s.speed * sin(atan2(0,1))];
-    % Use heading from segment direction
-    nd = state.shuttles(i);
-    % Direction from seg_t: approximate heading from current position
-    % (sufficient for magnitude-based TTC)
     spd_s = s.speed;
 
     %% Shuttle–Pedestrian conflicts
@@ -27,6 +29,7 @@ for i = 1:cfg.n_shuttles
         sep = sqrt(dx^2 + dy^2);
 
         if sep > cfg.ped_detect_radius; continue; end
+        chk.n_ped_checked = chk.n_ped_checked + 1;
 
         % Relative velocity (shuttle approaching ped at speed spd_s)
         % Closing speed ≈ shuttle speed projected toward pedestrian
@@ -88,6 +91,7 @@ for i = 1:cfg.n_shuttles
         sep = sqrt(dx^2 + dy^2);
 
         if sep > cfg.veh_detect_radius; continue; end
+        chk.n_veh_checked = chk.n_veh_checked + 1;
         if sep < 1e-3; sep = 1e-3; end
 
         % Closing speed = relative speed along loop

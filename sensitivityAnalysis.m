@@ -1,7 +1,7 @@
 function sensitivityAnalysis(varargin)
 % sensitivityAnalysis  One-At-a-Time (OAT) sensitivity analysis for ACMSCS
 %
-% Sweeps 9 input parameters across 5 levels (±50%, ±25%, baseline) while
+% Sweeps 7 input parameters across 5 levels (±50%, ±25%, baseline) while
 % holding all others fixed. Runs Monte Carlo for each scenario and reports:
 %   - Normalized Sensitivity Indices (NSI) per KPP
 %   - Tornado plots (one subplot per KPP, parameters ranked by impact)
@@ -40,15 +40,13 @@ env                    = loadEnvironment('G.mat', cfg_base);
 %   'abs'   : cfg.(field) = level_value  (used when baseline * scale would
 %             exceed physical bounds or requires integer values)
 SWEEP = {
-    'ped_rate_base',  'Ped arrival rate',    [0.50 0.75 1.00 1.25 1.50],  'scale';
-    'veh_rate',       'Veh arrival rate',    [0.50 0.75 1.00 1.25 1.50],  'scale';
-    'speed_mean',     'Shuttle speed',       [0.75 0.875 1.00 1.125 1.25],'scale';
-    'speed_std',      'Speed variability',   [0.50 0.75 1.00 1.25 1.50],  'scale';
-    'detect_prob',    'Detection prob',      [0.80 0.875 0.95 0.975 0.99],'abs';
-    'pos_noise_std',  'Position noise',      [0.50 0.75 1.00 1.25 1.50],  'scale';
-    'latency_mean',   'Percep. latency',     [0.50 0.75 1.00 1.25 1.50],  'scale';
-    'n_shuttles',     'Fleet size',          [1  2  3  4  5],             'abs';
-    'dwell_time',     'Stop dwell time',     [0.50 0.75 1.00 1.25 1.50],  'scale';
+    'uti_w_jerk',        'UTI jerk weight',      [0.50 0.75 1.00 1.25 1.50], 'scale';
+    'uti_w_brake',       'UTI brake weight',     [0.50 0.75 1.00 1.25 1.50], 'scale';
+    'uti_w_consistency', 'UTI consist. weight',  [0.50 0.75 1.00 1.25 1.50], 'scale';
+    'latency_mean',      'Sensing latency',      [0.50 0.75 1.00 1.25 1.50], 'scale';
+    'pred_horizon',      'Prediction horizon',   [0.50 0.75 1.00 1.25 1.50], 'scale';
+    'weather_std',       'Weather variation',    [0.50 0.75 1.00 1.25 1.50], 'scale';
+    'n_shuttles',        'Fleet size',           [1 2 3 4 5],                'abs';
 };
 
 n_params  = size(SWEEP, 1);
@@ -108,7 +106,6 @@ for pi = 1:n_params
 
         cfg_p          = cfg_base;
         cfg_p.(SWEEP{pi,1}) = param_vals(pi,li);
-        % n_shuttles must be integer
         if strcmp(SWEEP{pi,1}, 'n_shuttles')
             cfg_p.n_shuttles = round(cfg_p.n_shuttles);
         end
@@ -230,9 +227,11 @@ function kpps = runScenario(cfg, env)
         trip_all{rep} = trips;
         perc_all{rep} = perception;
 
-        js(cfg.n_shuttles) = struct('rms_jerk',0,'rms_brake_jerk',0);
+        js = repmat(struct('rms_jerk',0,'rms_brake_jerk',0,'jerk_n',0,'brake_jerk_n',0), 1, cfg.n_shuttles);
         for i = 1:cfg.n_shuttles
             sh = state.shuttles(i);
+            js(i).jerk_n       = sh.jerk_n;
+            js(i).brake_jerk_n = sh.brake_jerk_n;
             if sh.jerk_n > 0
                 js(i).rms_jerk = sqrt(sh.jerk_sq_sum / sh.jerk_n);
             end
@@ -334,7 +333,7 @@ for ki = 1:n_kpps
     xl.Label = sprintf('Base\n%.3g', Y0);
     xl.LabelVerticalAlignment = 'bottom';
     xl.FontSize  = 7;
-    xl.FontColor = C_BL;
+    xl.LabelColor = C_BL;
 
     % Axis labels
     yticks(ax, 1:n_params);

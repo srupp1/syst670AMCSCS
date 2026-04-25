@@ -2,11 +2,11 @@ function runVerificationTests(varargin)
 % runVerificationTests  Run all automated V&V tests for the ACMSCS simulation.
 %
 % Test sections:
-%   Simulation Verification  (TP-01 to TP-03) — structural/stochastic checks
+%   Simulation Verification  (VER-SIM-01 to VER-SIM-03) — structural/stochastic checks
 %   Simulation Validation    (VAL-SIM-001 to 005) — formula/model accuracy
 %   Objective System Verif.  (OSV-PCR/IVCR/ATD/SAA/UTI) — KPP requirements
 %
-% Note: TP-04 (Implementation Inspection) is manual and excluded.
+% Note: VER-SIM-04 (Implementation Inspection) is manual and excluded.
 %
 % Usage:
 %   runVerificationTests           % all 13 tests  (full reps, ~30-45 min)
@@ -20,7 +20,7 @@ fprintf('=======================================================\n\n');
 
 FAST_MODE = (nargin > 0 && strcmpi(varargin{1},'fast'));
 if FAST_MODE
-    fprintf('FAST MODE: reduced replications for TP-03 and OSV tests\n\n');
+    fprintf('FAST MODE: reduced replications for VER-SIM-03 and OSV tests\n\n');
 end
 
 TP03_REPS = 30;  OSV_REPS = 100;
@@ -99,5 +99,5 @@ else
     fprintf('OVERALL: %d TEST(S) FAILED — see details above\n\n', n_fail);
 end
 
-fprintf('Note: TP-04 (Implementation Inspection) requires manual review.\n\n');
+fprintf('Note: VER-SIM-04 (Implementation Inspection) requires manual review.\n\n');
 end

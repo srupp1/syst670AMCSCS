@@ -72,18 +72,23 @@ for r = 1:n
     %   jerk = (accel_k - accel_{k-1}) / dt   [true d^2v/dt^2]
     %   rms_jerk = sqrt(mean(jerk^2))
     %
-    % Reference comfort thresholds (ISO 2631 / transit literature):
-    %   jerk_comfort  = 1.0 m/s^3  (low discomfort)
-    %   jerk_max      = 3.0 m/s^3  (high discomfort)
-    %   brake_comfort = 1.5 m/s^3
-    %   brake_max     = 4.0 m/s^3
-
-    jerk_comfort  = 1.0;   jerk_max  = 3.0;
-    brake_comfort = 1.5;   brake_max = 4.0;
+    % Thresholds calibrated to the simulation's physical jerk range.
+    % ISO 2631 values (1-4 m/s^3) assume sub-second sampling and cannot be
+    % applied directly.  At dt=10 s, jerk = d^2v/dt^2 scales as speed_std/dt^2,
+    % giving typical RMS values ~0.003 m/s^3.  Max possible jerk is bounded by
+    % the speed clamp range: (6-1)/dt^2 = 0.05 m/s^3.  Thresholds below place
+    % normal operation near norm=0.2 and worst-case near norm=1.
+    jerk_ref      = cfg.speed_std / cfg.dt^2;   % ~0.0015 for defaults
+    jerk_comfort  = 0.5 * jerk_ref;   jerk_max  = 8.0 * jerk_ref;
+    brake_comfort = 0.4 * jerk_ref;   brake_max = 6.0 * jerk_ref;
 
     if ~isempty(jerk) && numel(jerk) > 0
-        mean_rms_jerk  = mean([jerk.rms_jerk]);
-        mean_rms_brake = mean([jerk.rms_brake_jerk]);
+        total_jerk_sq  = sum([jerk.rms_jerk].^2 .* max([jerk.jerk_n], 0));
+        total_jerk_n   = sum(max([jerk.jerk_n], 0));
+        total_brake_sq = sum([jerk.rms_brake_jerk].^2 .* max([jerk.brake_jerk_n], 0));
+        total_brake_n  = sum(max([jerk.brake_jerk_n], 0));
+        mean_rms_jerk  = sqrt(total_jerk_sq  / max(total_jerk_n,  1));
+        mean_rms_brake = sqrt(total_brake_sq / max(total_brake_n, 1));
     else
         mean_rms_jerk  = 0;
         mean_rms_brake = 0;
@@ -97,11 +102,9 @@ for r = 1:n
     % unpredictable shuttle behavior near pedestrians)
     consistency_penalty = min(1, pcr_rep(r) / cfg.kpp.pcr_max);
 
-    % Weighted sum (weights reflect relative importance to rider trust)
-    %   40% longitudinal jerk comfort
-    %   35% braking smoothness
-    %   25% behavior consistency
-    uti_rep(r) = max(0, 1 - 0.40*norm_jerk - 0.35*norm_brake - 0.25*consistency_penalty);
+    uti_rep(r) = max(0, 1 - cfg.uti_w_jerk*norm_jerk ...
+                          - cfg.uti_w_brake*norm_brake ...
+                          - cfg.uti_w_consistency*consistency_penalty);
 end
 
 %% Aggregate: mean, std, 95% CI, pass/fail  (SIM-AGG-001, SIM-CAP-012)

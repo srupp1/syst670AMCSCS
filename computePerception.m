@@ -1,4 +1,4 @@
-function perception = computePerception(state, cfg, t)
+function perception = computePerception(state, env, cfg, t)
 % computePerception  Model shuttle perception of nearby agents.
 %
 % Perception record fields (SIM-IIF-003):
@@ -28,10 +28,24 @@ for i = 1:cfg.n_shuttles
         v = state.vehs(k);
         sep = sqrt((v.x-s.x)^2 + (v.y-s.y)^2);
         if sep <= cfg.veh_detect_radius * 2
+            lp_v = mod(v.loop_pos, env.loop_length);
+            seg_v = find(env.cum_dist <= lp_v, 1, 'last');
+            seg_v = min(max(seg_v, 1), env.n_seg);
+            n1v = env.node_seq(seg_v);
+            n2v = env.node_seq(mod(seg_v, env.n_seg) + 1);
+            ddx = env.pos(n2v,1) - env.pos(n1v,1);
+            ddy = env.pos(n2v,2) - env.pos(n1v,2);
+            dd  = sqrt(ddx^2 + ddy^2);
+            if dd > 1e-6
+                vvx = v.speed * ddx / dd;
+                vvy = v.speed * ddy / dd;
+            else
+                vvx = 0;  vvy = 0;
+            end
             agents(end+1).x    = v.x; %#ok<AGROW>
             agents(end).y      = v.y;
-            agents(end).vx     = 0;
-            agents(end).vy     = 0;
+            agents(end).vx     = vvx;
+            agents(end).vy     = vvy;
             agents(end).type   = 'veh';
         end
     end

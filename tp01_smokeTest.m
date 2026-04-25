@@ -75,9 +75,11 @@ try
         trip_all{rep} = trips;
         perc_all{rep} = perception;
 
-        js(cfg.n_shuttles) = struct('rms_jerk',0,'rms_brake_jerk',0); %#ok<AGROW>
+        js = repmat(struct('rms_jerk',0,'rms_brake_jerk',0,'jerk_n',0,'brake_jerk_n',0), 1, cfg.n_shuttles);
         for i = 1:cfg.n_shuttles
             sh = state.shuttles(i);
+            js(i).jerk_n       = sh.jerk_n;
+            js(i).brake_jerk_n = sh.brake_jerk_n;
             if sh.jerk_n > 0
                 js(i).rms_jerk = sqrt(sh.jerk_sq_sum / sh.jerk_n);
             end

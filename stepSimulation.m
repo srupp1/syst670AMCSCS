@@ -1,4 +1,4 @@
-function [state, encounters, trips, perception] = stepSimulation(state, env, cfg, t)
+function [state, encounters, trips, perception, enc_chk] = stepSimulation(state, env, cfg, t)
 % stepSimulation  Advance simulation by one time step (cfg.dt seconds).
 %
 % Sequence (SIM-RUN-001, SIM-RUN-002):
@@ -9,10 +9,14 @@ function [state, encounters, trips, perception] = stepSimulation(state, env, cfg
 %   5. Update vehicle positions
 %   6. Conflict detection (TTC, PET, separation)
 %   7. Perception model
+%
+% Optional fifth output enc_chk: struct with n_ped_checked / n_veh_checked
+% (total shuttle–agent pairs evaluated within detection radius this step).
 
 state = updatePedestrians(state, env, cfg);
 state = updateVehicles(state, env, cfg);
 [state, trips] = updateShuttles(state, env, cfg, t);
-encounters     = detectConflicts(state, cfg, t);
-perception     = computePerception(state, cfg, t);
+[encounters, enc_chk] = detectConflicts(state, cfg, t);
+
+perception = computePerception(state, env, cfg, t);
 end

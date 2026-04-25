@@ -1,5 +1,5 @@
 function result = tp02_seededRandTest()
-% tp02_seededRandTest  TP-02: Seeded Randomness Test
+% tp02_seededRandTest  VER-SIM-02: Seeded Randomness Test
 %
 % Verifies deterministic reproducibility: running the simulation twice
 % with identical configuration and identical base_seed produces identical
@@ -12,7 +12,7 @@ function result = tp02_seededRandTest()
 %                are bit-for-bit identical between Run A and Run B.
 
 fprintf('\n========================================\n');
-fprintf(' TP-02: Seeded Randomness Test\n');
+fprintf(' VER-SIM-02: Seeded Randomness Test\n');
 fprintf('========================================\n');
 
 passed       = true;
@@ -28,9 +28,9 @@ try
     env = loadEnvironment('G.mat', cfg);
     fprintf('Config: %d reps, base_seed=%d, %d steps/rep\n\n', N_REPS, SEED, cfg.n_steps);
 catch ME
-    result = struct('id','TP-02','name','seededRandTest','pass',false, ...
+    result = struct('id','VER-SIM-02','name','seededRandTest','pass',false, ...
         'reasons',{{sprintf('loadEnvironment failed: %s', ME.message)}});
-    fprintf('TP-02 RESULT: FAIL\n  - %s\n\n', result.reasons{1});
+    fprintf('VER-SIM-02 RESULT: FAIL\n  - %s\n\n', result.reasons{1});
     return;
 end
 
@@ -38,8 +38,8 @@ end
 fprintf('--- Run A (seed=%d) ---\n', SEED);
 [A, err] = runReps(cfg, env, N_REPS, SEED);
 if ~isempty(err)
-    result = struct('id','TP-02','name','seededRandTest','pass',false,'reasons',{{err}});
-    fprintf('TP-02 RESULT: FAIL\n  - %s\n\n', err);
+    result = struct('id','VER-SIM-02','name','seededRandTest','pass',false,'reasons',{{err}});
+    fprintf('VER-SIM-02 RESULT: FAIL\n  - %s\n\n', err);
     return;
 end
 
@@ -47,8 +47,8 @@ end
 fprintf('--- Run B (seed=%d) ---\n', SEED);
 [B, err] = runReps(cfg, env, N_REPS, SEED);
 if ~isempty(err)
-    result = struct('id','TP-02','name','seededRandTest','pass',false,'reasons',{{err}});
-    fprintf('TP-02 RESULT: FAIL\n  - %s\n\n', err);
+    result = struct('id','VER-SIM-02','name','seededRandTest','pass',false,'reasons',{{err}});
+    fprintf('VER-SIM-02 RESULT: FAIL\n  - %s\n\n', err);
     return;
 end
 
@@ -107,7 +107,7 @@ for rep = 1:N_REPS
     end
 end
 
-fprintf('\nTP-02 RESULT: %s\n', tf2str(passed));
+fprintf('\nVER-SIM-02 RESULT: %s\n', tf2str(passed));
 if ~passed
     for i = 1:numel(fail_reasons)
         fprintf('  - %s\n', fail_reasons{i});
@@ -115,7 +115,7 @@ if ~passed
 end
 fprintf('\n');
 
-result = struct('id','TP-02','name','seededRandTest','pass',passed,'reasons',{fail_reasons});
+result = struct('id','VER-SIM-02','name','seededRandTest','pass',passed,'reasons',{fail_reasons});
 end
 
 % ── Subfunction ──────────────────────────────────────────────────────────────

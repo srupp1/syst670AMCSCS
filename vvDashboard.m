@@ -6,8 +6,8 @@ function vvDashboard(varargin)
 % displayed in a scrollable textarea alongside a metrics/status panel.
 %
 % Usage:
-%   vvDashboard          % full run (TP-03: 30 reps, OSV: 100 reps)
-%   vvDashboard('fast')  % quick run (TP-03: 10 reps, OSV: 30 reps)
+%   vvDashboard          % full run (VER-SIM-03: 30 reps, OSV: 100 reps)
+%   vvDashboard('fast')  % quick run (VER-SIM-03: 10 reps, OSV: 30 reps)
 
 %% ── Parse arguments ──────────────────────────────────────────────────────
 FAST_MODE = (nargin > 0 && strcmpi(varargin{1}, 'fast'));
@@ -71,9 +71,9 @@ tg = uitabgroup(fig, 'Position', [0 0 FIG_W TAB_AREA_H]);
 % Each row: {tab_label, short_id, run_cmd_type, display_name}
 % run_cmd_type: 'tp01','tp02','tp03','val001'..'val005','osv' (shared)
 TESTS = {
-    ' TP-01 ',   'TP-01',   'tp01',   'TP-01: Smoke Test';
-    ' TP-02 ',   'TP-02',   'tp02',   'TP-02: Seeded Reproducibility';
-    ' TP-03 ',   'TP-03',   'tp03',   'TP-03: Fully Randomized';
+    ' VER-SIM-01 ',   'VER-SIM-01',   'tp01',   'VER-SIM-01: Smoke Test';
+    ' VER-SIM-02 ',   'VER-SIM-02',   'tp02',   'VER-SIM-02: Seeded Reproducibility';
+    ' VER-SIM-03 ',   'VER-SIM-03',   'tp03',   'VER-SIM-03: Fully Randomized';
     ' VAL-001 ', 'VAL-001', 'val001', 'VAL-SIM-001: Safety Metrics';
     ' VAL-002 ', 'VAL-002', 'val002', 'VAL-SIM-002: Trip Performance';
     ' VAL-003 ', 'VAL-003', 'val003', 'VAL-SIM-003: Perception Metrics';

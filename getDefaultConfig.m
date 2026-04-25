@@ -64,4 +64,9 @@ cfg.kpp.ivcr_max    = 0.05;     % Max inter-vehicle conflict rate [conflicts/veh
 cfg.kpp.atd_max     = 15.0;     % Max average trip delay [%]
 cfg.kpp.saa_min     = 0.95;     % Min detection recall
 cfg.kpp.uti_min     = 0.75;     % Min user trust index [0-1]
+
+% UTI component weights (must be in [0,1]; need not sum to 1)
+cfg.uti_w_jerk        = 0.40;   % Longitudinal jerk comfort
+cfg.uti_w_brake       = 0.35;   % Braking smoothness
+cfg.uti_w_consistency = 0.25;   % Behavior consistency (PCR-based)
 end

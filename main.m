@@ -31,6 +31,8 @@ enc_all  = cell(cfg.n_replications, 1);
 trip_all = cell(cfg.n_replications, 1);
 perc_all = cell(cfg.n_replications, 1);
 jerk_all = cell(cfg.n_replications, 1);
+ped_checked_all = zeros(cfg.n_replications, 1);
+veh_checked_all = zeros(cfg.n_replications, 1);
 
 % Running KPP value accumulators (one scalar per completed replication)
 pcr_reps  = nan(cfg.n_replications, 1);
@@ -56,12 +58,14 @@ for rep = 1:cfg.n_replications
     perception = struct('t',{},'shuttle_id',{},'agent_type',{},...
                         'true_x',{},'true_y',{},'det_x',{},'det_y',{},...
                         'detected',{},'pred_err',{},'latency',{});
+    ped_chk_rep = 0;
+    veh_chk_rep = 0;
 
     % ── Running Time Steps (SIM-RUN-001) ─────────────────────────────────
     for k = 1:cfg.n_steps
         t_sim = cfg.t_start + (k - 1) * cfg.dt;
 
-        [state, enc_k, trip_k, perc_k] = stepSimulation(state, env, cfg, t_sim);
+        [state, enc_k, trip_k, perc_k, chk_k] = stepSimulation(state, env, cfg, t_sim);
 
         % ── Collecting Metrics (SIM-MET-001) ─────────────────────────────
         if ~isempty(enc_k)
@@ -73,6 +77,8 @@ for rep = 1:cfg.n_replications
         if ~isempty(perc_k)
             perception = [perception, perc_k]; %#ok<AGROW>
         end
+        ped_chk_rep = ped_chk_rep + chk_k.n_ped_checked;
+        veh_chk_rep = veh_chk_rep + chk_k.n_veh_checked;
 
         % ── Periodic map refresh ─────────────────────────────────────────
         if mod(k, update_interval) == 0 && ishandle(dash.fig)
@@ -84,11 +90,15 @@ for rep = 1:cfg.n_replications
     enc_all{rep}  = encounters;
     trip_all{rep} = trips;
     perc_all{rep} = perception;
+    ped_checked_all(rep) = ped_chk_rep;
+    veh_checked_all(rep) = veh_chk_rep;
 
     % ── Extract jerk stats from final shuttle state ───────────────────────
-    jerk_stats(cfg.n_shuttles) = struct('rms_jerk',0,'rms_brake_jerk',0);
+    jerk_stats = repmat(struct('rms_jerk',0,'rms_brake_jerk',0,'jerk_n',0,'brake_jerk_n',0), 1, cfg.n_shuttles);
     for i = 1:cfg.n_shuttles
         sh = state.shuttles(i);
+        jerk_stats(i).jerk_n       = sh.jerk_n;
+        jerk_stats(i).brake_jerk_n = sh.brake_jerk_n;
         if sh.jerk_n > 0
             jerk_stats(i).rms_jerk = sqrt(sh.jerk_sq_sum / sh.jerk_n);
         else
@@ -137,12 +147,13 @@ for rep = 1:cfg.n_replications
         saa_reps(rep) = mean([perc_r.detected]);
     end
 
-    rj = mean([jerk_stats.rms_jerk]);
-    rb = mean([jerk_stats.rms_brake_jerk]);
-    nj = max(0, min(1, (rj - 1.0) / 2.0));
-    nb = max(0, min(1, (rb - 1.5) / 2.5));
-    uti_reps(rep) = max(0, 1 - 0.40*nj - 0.35*nb ...
-        - 0.25*min(1, pcr_reps(rep)/cfg.kpp.pcr_max));
+    rj = sqrt(sum([jerk_stats.rms_jerk].^2        .* max([jerk_stats.jerk_n],       0)) / max(sum(max([jerk_stats.jerk_n],       0)), 1));
+    rb = sqrt(sum([jerk_stats.rms_brake_jerk].^2  .* max([jerk_stats.brake_jerk_n], 0)) / max(sum(max([jerk_stats.brake_jerk_n], 0)), 1));
+    jerk_ref_d = cfg.speed_std / cfg.dt^2;
+    nj = max(0, min(1, (rj - 0.5*jerk_ref_d) / (7.5*jerk_ref_d)));
+    nb = max(0, min(1, (rb - 0.4*jerk_ref_d) / (5.6*jerk_ref_d)));
+    uti_reps(rep) = max(0, 1 - cfg.uti_w_jerk*nj - cfg.uti_w_brake*nb ...
+        - cfg.uti_w_consistency*min(1, pcr_reps(rep)/cfg.kpp.pcr_max));
 
     % Build running-mean struct for dashboard
     kpp_running.PCR       = mean(pcr_reps(1:rep),  'omitnan');
@@ -171,6 +182,9 @@ fprintf('\nAll replications complete in %.1f s (%.1f s/rep)\n\n', ...
 
 %% ── Aggregating Results (SIM-AGG-001) ───────────────────────────────────
 fprintf('Aggregating results...\n');
+fprintf('  Conflict interactions checked: %d ped-pairs, %d veh-pairs across %d reps (avg %.0f ped/rep, %.0f veh/rep)\n', ...
+    sum(ped_checked_all), sum(veh_checked_all), cfg.n_replications, ...
+    sum(ped_checked_all)/cfg.n_replications, sum(veh_checked_all)/cfg.n_replications);
 kpps = computeKPPs(enc_all, trip_all, perc_all, jerk_all, cfg, env);
 
 %% ── Verifying KPPs + Reporting (SIM-KPP-001, SIM-RPT-001) ──────────────

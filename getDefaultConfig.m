@@ -24,7 +24,7 @@ cfg.ped_rate_base     = 0.04;   % Arrival rate at large crossing [ped/s]
 cfg.ped_speed_mean    = 1.4;    % Walking speed [m/s]
 cfg.ped_speed_std     = 0.2;
 cfg.ped_cross_time    = 8;      % Time to cross road [s]
-cfg.ped_detect_radius = 8.0;    % Conflict-zone radius [m]
+cfg.ped_detect_radius = 6.0;    % Conflict-zone radius [m]
 
 % Background vehicles (SIM-CAP-003)
 cfg.veh_rate          = 1/300;  % Vehicle arrival rate [veh/s] on loop
@@ -40,7 +40,7 @@ cfg.weather_std       = 0.05;   % Tighter weather variation (was 0.08)
 cfg.ttc_high    = 1.5;          % TTC < this → high severity [s]
 cfg.ttc_med     = 3.0;          % TTC < this → medium severity [s]
 cfg.pet_thresh  = 1.5;          % PET threshold [s]
-cfg.min_sep_ped = 3.0;          % Min acceptable separation ped [m]
+cfg.min_sep_ped = 1.0;          % Min acceptable separation ped [m]
 cfg.min_sep_veh = 8.0;          % Min acceptable separation veh [m]
 
 % AV advance-response buffer (SIM-CAP-004, SIM-CAP-005)
@@ -49,7 +49,7 @@ cfg.min_sep_veh = 8.0;          % Min acceptable separation veh [m]
 % ttc_buffer represents the effective extra TTC margin provided by that
 % proactive response.  Added to computed TTC before severity classification.
 % Set to 0 to disable (conservative / worst-case analysis).
-cfg.ttc_buffer  = 3.0;          % AV advance-response margin [s]
+cfg.ttc_buffer  = 3;          % AV advance-response margin [s]
 
 % Perception model (SIM-CAP-008)
 cfg.detect_prob       = 0.99;   % Detection probability (lidar+camera fusion)

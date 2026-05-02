@@ -22,6 +22,13 @@ cfg.ttc_buffer = 0;   % Disable AV response buffer so raw TTC geometry is tested
 passed        = true;
 fail_reasons  = {};
 
+% Minimal env: single degenerate segment so detectConflicts falls back to
+% heading = [1,0] (+ x direction). All test cases place the ped/vehicle
+% along the +x axis, so closing speed = full shuttle speed as expected.
+env_test.node_seq = [1];
+env_test.pos      = [0 0];
+env_test.n_seg    = 1;
+
 %% ── Test Case 1: Pedestrian TTC and PET ─────────────────────────────────
 % Shuttle at origin, speed = 4.0 m/s, dwell = 0
 % Ped at (5.0, 0.0), crossing timer = 8.0 s
@@ -40,7 +47,7 @@ PET_ped_a = max(0, PED_TIMER/2 - TTC_ped_a);
 
 state = buildState(1, 0, 0, SH_SPEED, 0, ...
     PED_X, 0, PED_TIMER, [], [], []);
-[enc, chk1] = detectConflicts(state, cfg, 0);
+[enc, chk1] = detectConflicts(state, env_test, cfg, 0);
 fprintf('  TC1 interactions checked: %d ped-pair(s), %d veh-pair(s)\n', chk1.n_ped_checked, chk1.n_veh_checked);
 
 ped_enc = enc(strcmp({enc.enc_type},'ped'));
@@ -80,7 +87,7 @@ TTC_veh_a = (sep_veh - cfg.min_sep_veh) / abs(SH_SPEED - VEH_SPD);
 
 state2 = buildState(1, 0, 0, SH_SPEED, 0, ...
     [], [], [], VEH_X, 0, VEH_SPD);
-[enc2, chk2] = detectConflicts(state2, cfg, 0);
+[enc2, chk2] = detectConflicts(state2, env_test, cfg, 0);
 fprintf('  TC2 interactions checked: %d ped-pair(s), %d veh-pair(s)\n', chk2.n_ped_checked, chk2.n_veh_checked);
 
 veh_enc = enc2(strcmp({enc2.enc_type},'veh'));
@@ -119,7 +126,7 @@ TTC3_a    = (sep3 - cfg3.min_sep_ped) / SH_SPEED;   % (11-3)/4 = 2.0 s
 PET3_a    = max(0, PED3_TIMER/2 - TTC3_a);           % max(0,6-2) = 4.0 s
 
 state3 = buildState(1, 0, 0, SH_SPEED, 0, PED3_X, 0, PED3_TIMER, [], [], []);
-[enc3, chk3] = detectConflicts(state3, cfg3, 0);
+[enc3, chk3] = detectConflicts(state3, env_test, cfg3, 0);
 fprintf('  TC3 interactions checked: %d ped-pair(s), %d veh-pair(s)\n', chk3.n_ped_checked, chk3.n_veh_checked);
 
 ped_enc3 = enc3(strcmp({enc3.enc_type},'ped'));
@@ -147,7 +154,7 @@ end
 %% ── Boundary: dwell suppression ──────────────────────────────────────────
 % A shuttle with dwell>0 must produce NO encounters
 state_dwell = buildState(1, 0, 0, SH_SPEED, 15, PED_X, 0, PED_TIMER, [], [], []);
-[enc_dwell, chk_dwell] = detectConflicts(state_dwell, cfg, 0);
+[enc_dwell, chk_dwell] = detectConflicts(state_dwell, env_test, cfg, 0);
 fprintf('  Dwell check interactions checked: %d ped-pair(s), %d veh-pair(s)\n', chk_dwell.n_ped_checked, chk_dwell.n_veh_checked);
 if ~isempty(enc_dwell)
     passed = false;

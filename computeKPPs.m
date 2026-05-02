@@ -30,17 +30,17 @@ for r = 1:n
         ped_enc   = enc(ped_mask);
         veh_enc   = enc(veh_mask);
 
-        ped_sev   = {ped_enc.severity};
-        ped_conf  = sum(strcmp(ped_sev,'high') | strcmp(ped_sev,'medium'));
-        veh_sev   = {veh_enc.severity};
-        veh_conf  = sum(strcmp(veh_sev,'high') | strcmp(veh_sev,'medium'));
+        % Deduplicate: keep worst severity per unique (shuttle_id, agent_id) pair
+        ped_conf  = deduplicateConflicts(ped_enc);
+        veh_conf  = deduplicateConflicts(veh_enc);
     else
         ped_enc = [];  veh_enc = [];
-        ped_conf = 0;  veh_conf = 0;
+        ped_conf = struct('n_unique',0,'n_conflict',0);
+        veh_conf = struct('n_unique',0,'n_conflict',0);
     end
 
-    pcr_rep(r)  = ped_conf  / max(1, numel(ped_enc));
-    ivcr_rep(r) = veh_conf  / max(1, numel(veh_enc));
+    pcr_rep(r)  = ped_conf.n_conflict / max(1, ped_conf.n_unique);
+    ivcr_rep(r) = veh_conf.n_conflict / max(1, veh_conf.n_unique);
 
     %% ATD — Average Trip Delay [%]
     % = mean((actual_time - baseline_time) / baseline_time * 100)
@@ -115,6 +115,25 @@ kpps.SAA_recall   = aggKPP(recall_rep, cfg.kpp.saa_min,  'ge');
 kpps.SAA_pred_err = aggKPP(pred_rep,   1.0,              'le');  % info only
 kpps.SAA_latency  = aggKPP(lat_rep,    0.1,              'le');  % info only
 kpps.UTI          = aggKPP(uti_rep,    cfg.kpp.uti_min,  'ge');
+end
+
+% -------------------------------------------------------------------------
+function r = deduplicateConflicts(enc_arr)
+% Per unique (shuttle_id, agent_id) pair keep worst severity; return counts.
+% Severity rank: high=2, medium=1, low=0.
+    if isempty(enc_arr)
+        r = struct('n_unique', 0, 'n_conflict', 0);
+        return;
+    end
+    sev_rank = 2*strcmp({enc_arr.severity},'high') + strcmp({enc_arr.severity},'medium');
+    keys = [[enc_arr.shuttle_id]', [enc_arr.agent_id]'];
+    [~, ~, ic] = unique(keys, 'rows');
+    n_unique = max(ic);
+    worst = zeros(n_unique, 1);
+    for u = 1:n_unique
+        worst(u) = max(sev_rank(ic == u));
+    end
+    r = struct('n_unique', n_unique, 'n_conflict', sum(worst >= 1));
 end
 
 % -------------------------------------------------------------------------

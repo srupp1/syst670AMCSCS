@@ -21,7 +21,7 @@ fprintf('========================================\n');
 
 passed      = true;
 fail_reasons = {};
-N_REPS      = 3;
+N_REPS      = 10;
 
 %% Setup
 cfg             = getDefaultConfig();
@@ -54,7 +54,7 @@ try
         rng(cfg.base_seed + rep - 1);
         state = initReplication(env, cfg);
 
-        encounters = struct('t',{},'shuttle_id',{},'enc_type',{}, ...
+        encounters = struct('t',{},'shuttle_id',{},'enc_type',{},'agent_id',{}, ...
                             'TTC',{},'PET',{},'min_sep',{},'severity',{});
         trips      = struct('shuttle_id',{},'leg',{},'start_node',{}, ...
                             'end_node',{},'actual_t',{},'baseline_t',{}, ...

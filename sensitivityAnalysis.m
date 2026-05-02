@@ -32,6 +32,7 @@ fprintf('=========================================\n\n');
 %% ── Environment & baseline config ─────────────────────────────────────────
 cfg_base               = getDefaultConfig();
 cfg_base.n_replications = N_REPS_SA;
+cfg_base.ttc_buffer     = 2.9;
 env                    = loadEnvironment('G.mat', cfg_base);
 
 %% ── Parameter sweep table ─────────────────────────────────────────────────
@@ -51,7 +52,7 @@ SWEEP = {
 
 n_params  = size(SWEEP, 1);
 n_levels  = size(SWEEP{1,3}, 2);   % 5 levels per parameter
-KPP_NAMES = {'PCR','IVCR','ATD','SAA_recall','UTI'};
+KPP_NAMES = {'PCR','IVCR','ATD','SAA\_recall','UTI'};
 n_kpps    = numel(KPP_NAMES);
 
 % Baseline values for each parameter (used in NSI denominator)
@@ -206,7 +207,7 @@ function kpps = runScenario(cfg, env)
         rng(cfg.base_seed + rep - 1);
         state = initReplication(env, cfg);
 
-        encounters = struct('t',{},'shuttle_id',{},'enc_type',{}, ...
+        encounters = struct('t',{},'shuttle_id',{},'enc_type',{},'agent_id',{}, ...
                             'TTC',{},'PET',{},'min_sep',{},'severity',{});
         trips      = struct('shuttle_id',{},'leg',{},'start_node',{}, ...
                             'end_node',{},'actual_t',{},'baseline_t',{}, ...
@@ -333,7 +334,6 @@ for ki = 1:n_kpps
     xl.Label = sprintf('Base\n%.3g', Y0);
     xl.LabelVerticalAlignment = 'bottom';
     xl.FontSize  = 7;
-    xl.LabelColor = C_BL;
 
     % Axis labels
     yticks(ax, 1:n_params);

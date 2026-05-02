@@ -16,7 +16,7 @@ function [state, encounters, trips, perception, enc_chk] = stepSimulation(state,
 state = updatePedestrians(state, env, cfg);
 state = updateVehicles(state, env, cfg);
 [state, trips] = updateShuttles(state, env, cfg, t);
-[encounters, enc_chk] = detectConflicts(state, cfg, t);
+[encounters, enc_chk] = detectConflicts(state, env, cfg, t);
 
 perception = computePerception(state, env, cfg, t);
 end

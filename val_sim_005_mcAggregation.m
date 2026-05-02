@@ -192,11 +192,12 @@ end
 
 % ── Helpers ──────────────────────────────────────────────────────────────────
 function enc = makeEncounters(n_ped, n_veh, n_ped_hi, n_veh_hi)
-    enc = struct('t',{},'shuttle_id',{},'enc_type',{},'TTC',{},'PET',{},'min_sep',{},'severity',{});
+    enc = struct('t',{},'shuttle_id',{},'enc_type',{},'agent_id',{},'TTC',{},'PET',{},'min_sep',{},'severity',{});
     for j = 1:n_ped
         enc(end+1).t          = j; %#ok<AGROW>
         enc(end).shuttle_id   = 1;
         enc(end).enc_type     = 'ped';
+        enc(end).agent_id     = j;
         enc(end).TTC          = 2.0;
         enc(end).PET          = 1.0;
         enc(end).min_sep      = 3.5;
@@ -206,6 +207,7 @@ function enc = makeEncounters(n_ped, n_veh, n_ped_hi, n_veh_hi)
         enc(end+1).t          = n_ped + j; %#ok<AGROW>
         enc(end).shuttle_id   = 1;
         enc(end).enc_type     = 'veh';
+        enc(end).agent_id     = j;
         enc(end).TTC          = 2.0;
         enc(end).PET          = 0.0;
         enc(end).min_sep      = 9.0;

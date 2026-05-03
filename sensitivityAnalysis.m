@@ -44,7 +44,7 @@ SWEEP = {
     'uti_w_jerk',        'UTI jerk weight',      [0.50 0.75 1.00 1.25 1.50], 'scale';
     'uti_w_brake',       'UTI brake weight',     [0.50 0.75 1.00 1.25 1.50], 'scale';
     'uti_w_consistency', 'UTI consist. weight',  [0.50 0.75 1.00 1.25 1.50], 'scale';
-    'latency_mean',      'Sensing latency',      [0.50 0.75 1.00 1.25 1.50], 'scale';
+    'ttc_buffer',        'Stopping buffer',      [0.50 0.75 1.00 1.25 1.50], 'scale';
     'pred_horizon',      'Prediction horizon',   [0.50 0.75 1.00 1.25 1.50], 'scale';
     'weather_std',       'Weather variation',    [0.50 0.75 1.00 1.25 1.50], 'scale';
     'n_shuttles',        'Fleet size',           [1 2 3 4 5],                'abs';
@@ -52,7 +52,7 @@ SWEEP = {
 
 n_params  = size(SWEEP, 1);
 n_levels  = size(SWEEP{1,3}, 2);   % 5 levels per parameter
-KPP_NAMES = {'PCR','IVCR','ATD','SAA\_recall','UTI'};
+KPP_NAMES = {'PCR','IVCR','ATD','SAA_recall','UTI'};
 n_kpps    = numel(KPP_NAMES);
 
 % Baseline values for each parameter (used in NSI denominator)
@@ -340,7 +340,7 @@ for ki = 1:n_kpps
     yticklabels(ax, param_labels(order));
     xlabel(ax, sprintf('%s (%s = better)', kpp_names{ki}, better_dir{ki}), ...
         'Color', FG, 'FontSize', 9);
-    title(ax, kpp_names{ki}, 'Color', FG, 'FontWeight','bold', 'FontSize',11);
+    title(ax, kpp_names{ki}, 'Color', FG, 'FontWeight','bold', 'FontSize',11,'Interpreter', 'none');
     ylim(ax, [0.4, n_params + 0.6]);
 
     % Auto-scale x with a small margin
@@ -350,18 +350,6 @@ for ki = 1:n_kpps
     margin = max((x_hi - x_lo) * 0.08, 1e-4);
     xlim(ax, [x_lo - margin, x_hi + margin]);
 end
-
-% Legend in the 6th (empty) cell
-ax_leg = subplot(2, 3, 6);
-set(ax_leg,'Color',BG,'Visible','off');
-patch(ax_leg,[0 1 1 0],[0.7 0.7 0.8 0.8], C_LO,'EdgeColor','none','FaceAlpha',0.85);
-patch(ax_leg,[0 1 1 0],[0.5 0.5 0.6 0.6], C_HI,'EdgeColor','none','FaceAlpha',0.85);
-plot(ax_leg,0.5,0.35,'o','Color',C_BL,'MarkerSize',6);
-text(ax_leg,1.1,0.75,'Decreases KPP value','Color',FG,'FontSize',9);
-text(ax_leg,1.1,0.55,'Increases KPP value','Color',FG,'FontSize',9);
-text(ax_leg,1.1,0.35,'Level sample','Color',FG,'FontSize',9);
-text(ax_leg,1.1,0.15,'— Baseline','Color',C_BL,'FontSize',9);
-xlim(ax_leg,[0 6]); ylim(ax_leg,[0 1]);
 
 sgtitle(fig, 'OAT Sensitivity Analysis — ACMSCS Monte Carlo Simulation', ...
     'Color', FG, 'FontSize', 13, 'FontWeight','bold');

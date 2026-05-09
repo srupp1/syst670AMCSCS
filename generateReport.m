@@ -37,7 +37,7 @@ if fid < 0
     warning('Could not write report to %s', out_file);
     return
 end
-
+writeCSVRow(fid, 'Version',       'v3.2');
 fprintf(fid, 'KPP,Mean,Std,CI95_Lo,CI95_Hi,Threshold,Pass\n');
 writeCSVRow(fid, 'PCR',          kpps.PCR);
 writeCSVRow(fid, 'IVCR',         kpps.IVCR);

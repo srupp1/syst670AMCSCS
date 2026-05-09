@@ -37,7 +37,7 @@ if fid < 0
     warning('Could not write report to %s', out_file);
     return
 end
-writeCSVRow(fid, 'Version',       'v3.2');
+
 fprintf(fid, 'KPP,Mean,Std,CI95_Lo,CI95_Hi,Threshold,Pass\n');
 writeCSVRow(fid, 'PCR',          kpps.PCR);
 writeCSVRow(fid, 'IVCR',         kpps.IVCR);
@@ -48,6 +48,7 @@ writeCSVRow(fid, 'SAA_latency',  kpps.SAA_latency);
 writeCSVRow(fid, 'UTI',          kpps.UTI);
 fprintf(fid, '\nReplications,%d\n', cfg.n_replications);
 fprintf(fid, 'Seed,%d\n', cfg.base_seed);
+fprintf(fid, 'Version: v3.2\n');
 fclose(fid);
 fprintf('Report saved → %s\n', out_file);
 end

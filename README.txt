@@ -19,4 +19,6 @@ There are 3 different views into the simulation that you can run, as well as a l
 	   any variable defined by the cfg object, we can easily run sensitivity analysis on. take a look at getDefaultConfig.m if you want to see what all can be modified
 
 4. Finally you can run the full VandV suite for "score" using the exportVVReport.m file. Again this takes in the 'fast' argument if you want to use it.
-	a) This is the final output that we use for reporting final values, and wakes it very easy for anyone to understand the results of the simulation
+	a) This is the final output that we use for reporting final values, and makes it very easy for anyone to understand the results of the simulation
+
+A final note, the html report we used for our final documents is included here with the code. To view it all you need to do is download the file and then open it in your internet browser of choice and you should see it.
